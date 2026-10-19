@@ -528,60 +528,7 @@ Bean definitions → factory post-processing → instance creation → bean post
 
 An application context discovers declared processors and coordinates their execution or registration. A bare bean factory needs explicit setup.
 
-## 11. Comparison table
-
-| Feature | BeanFactory | ApplicationContext | WebApplicationContext |
-|---|---|---|---|
-| Bean access and dependency injection | Yes | Yes | Yes |
-| Singleton and prototype support | Yes, through implementation | Yes | Yes |
-| Coordinated refresh process | Not part of base interface | Through configurable contexts | Through configurable web contexts |
-| Default eager non-lazy singleton initialization | Explicit with a bare factory | Normally during refresh | Normally during refresh |
-| Application events | Not part of interface | Yes | Yes |
-| Message resolution | Not part of interface | Yes | Yes |
-| Resource loading | Not part of interface | Yes | Yes |
-| Environment access | Not part of interface | Yes | Yes |
-| Discovery of declared post-processors | Explicit with a bare factory | Automatic during refresh | Automatic during refresh |
-| ServletContext access | No | Not part of interface | Yes |
-| Servlet request/session integration | Must be specially configured | Not inherent in non-web contexts | Supported in configured web contexts |
-| Typical use | Infrastructure | General Spring applications | Servlet-based Spring applications |
-
-## 12. Common mistakes and troubleshooting
-
-| Symptom or misconception | Explanation or check |
-|---|---|
-| “BeanFactory cannot perform DI” | DI is a core bean factory capability |
-| “ApplicationContext creates every bean immediately” | Non-lazy singletons are normally eager; other scopes differ |
-| “Singleton means one instance per JVM” | It means one instance per bean definition per container |
-| `NoSuchBeanDefinitionException` | Check registration, scanning, profiles, and parent/child visibility |
-| `NoUniqueBeanDefinitionException` | Resolve competing candidates using `@Qualifier`, `@Primary`, or a more specific dependency |
-| Request scope is not active | Check whether execution occurs inside a bound HTTP request |
-| `@Autowired` is not processed | Check whether the object is managed and the annotation infrastructure is registered |
-| `@PostConstruct` does not run | Check managed-object creation and lifecycle processor configuration |
-| Parent bean cannot inject a child bean | Parent contexts do not see child-only definitions |
-| Prototype does not change inside a singleton | Direct injection resolves the prototype when the singleton is created; use a provider for repeated retrieval |
-| “WebApplicationContext handles URLs itself” | MVC routing is performed by DispatcherServlet and its strategies |
-
-For repeated prototype retrieval:
-
-```java
-@Service
-public class JobService {
-    private final ObjectProvider<JobTask> tasks;
-
-    public JobService(ObjectProvider<JobTask> tasks) {
-        this.tasks = tasks;
-    }
-
-    public void runJob() {
-        JobTask task = tasks.getObject();
-        task.execute();
-    }
-}
-```
-
-Here `JobTask` must be registered with prototype scope for each `getObject()` call to produce a new instance. Resource cleanup remains the caller's responsibility where needed.
-
-## 13. Interview revision
+## 11. Interview revision
 
 **What is BeanFactory?**  
 The foundational Spring bean-access contract, backed by implementations that create beans and resolve their dependencies.
