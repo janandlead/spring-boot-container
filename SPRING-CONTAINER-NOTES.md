@@ -661,4 +661,3 @@ Use constructor injection for dependencies. Let Spring Boot or the application b
 
 **How do the three relate?**  
 BeanFactory provides the foundation; ApplicationContext adds application services; WebApplicationContext specializes that application container for the Servlet environment.
-
