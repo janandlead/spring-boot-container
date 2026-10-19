@@ -508,68 +508,7 @@ Important lifecycle boundaries:
 - Request and session scopes have their own destruction boundaries.
 - A process crash or forced termination does not guarantee cleanup callbacks.
 
-## 10. Functional flow: HTTP request processing
-
-```mermaid
-sequenceDiagram
-    participant Client
-    participant Server as Servlet server
-    participant Filters as Filter chain
-    participant Dispatcher as DispatcherServlet
-    participant Mapping as HandlerMapping
-    participant Adapter as HandlerAdapter
-    participant Controller
-    participant Service
-    participant Repository
-
-    Client->>Server: HTTP request
-    Server->>Filters: Dispatch request
-    Filters->>Dispatcher: Continue filter chain
-    Dispatcher->>Mapping: Find handler for request
-    Mapping-->>Dispatcher: Handler and interceptors
-    Dispatcher->>Adapter: Invoke selected handler
-    Adapter->>Controller: Resolve arguments and call method
-    Controller->>Service: Execute business operation
-    Service->>Repository: Read or write data if required
-    Repository-->>Service: Result
-    Service-->>Controller: Business result
-    Controller-->>Adapter: Response body or view information
-    Adapter-->>Dispatcher: Handle return value
-    Dispatcher-->>Filters: Complete MVC processing
-    Filters-->>Server: Complete response processing
-    Server-->>Client: HTTP response
-```
-
-For a response-body controller, return-value handling uses an appropriate `HttpMessageConverter` to write the response, such as JSON. For view-based MVC, `DispatcherServlet` resolves and renders the view after handler execution.
-
-Additional points:
-
-- Filters run outside MVC handler invocation and can stop the chain.
-- Interceptors participate around the selected handler.
-- MVC exception resolvers can translate controller exceptions into responses.
-- The diagram shows synchronous success processing; asynchronous handling has additional dispatch behavior.
-- Spring resolves singleton dependencies at bean creation time. It does not normally recreate or look up every service for every request.
-- The web context supplies and manages beans; `DispatcherServlet` handles MVC request dispatch.
-
-## 11. Functional flow: application events
-
-```mermaid
-sequenceDiagram
-    participant Publisher as Application bean
-    participant Context as ApplicationEventPublisher
-    participant Multicaster as Event multicaster
-    participant Listener as Matching listener
-    Publisher->>Context: publishEvent(event)
-    Context->>Multicaster: Multicast event
-    Multicaster->>Listener: Invoke listener
-    Listener-->>Multicaster: Return
-    Multicaster-->>Context: Complete
-    Context-->>Publisher: Return to caller
-```
-
-This is the default synchronous model. Publishing a Spring event does not inherently provide durable messaging, retries, or cross-service delivery.
-
-## 12. Container extension points
+## 10. Container extension points
 
 ### BeanFactoryPostProcessor
 
@@ -589,7 +528,7 @@ Bean definitions → factory post-processing → instance creation → bean post
 
 An application context discovers declared processors and coordinates their execution or registration. A bare bean factory needs explicit setup.
 
-## 13. Comparison table
+## 11. Comparison table
 
 | Feature | BeanFactory | ApplicationContext | WebApplicationContext |
 |---|---|---|---|
@@ -606,7 +545,7 @@ An application context discovers declared processors and coordinates their execu
 | Servlet request/session integration | Must be specially configured | Not inherent in non-web contexts | Supported in configured web contexts |
 | Typical use | Infrastructure | General Spring applications | Servlet-based Spring applications |
 
-## 14. Common mistakes and troubleshooting
+## 12. Common mistakes and troubleshooting
 
 | Symptom or misconception | Explanation or check |
 |---|---|
@@ -642,7 +581,7 @@ public class JobService {
 
 Here `JobTask` must be registered with prototype scope for each `getObject()` call to produce a new instance. Resource cleanup remains the caller's responsibility where needed.
 
-## 15. Interview revision
+## 13. Interview revision
 
 **What is BeanFactory?**  
 The foundational Spring bean-access contract, backed by implementations that create beans and resolve their dependencies.
