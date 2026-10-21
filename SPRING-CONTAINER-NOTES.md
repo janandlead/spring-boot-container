@@ -2,6 +2,84 @@
 
 These notes explain the responsibilities, architecture, lifecycle, and functional flows of Spring's containers. Diagrams use Mermaid; open this file in a Markdown viewer with Mermaid support to render them.
 
+## Project walkthrough
+
+This project demonstrates container inspection at startup. Its `pom.xml` targets
+Java 17 and declares Spring Boot 4.1.1 with `spring-boot-starter-webmvc`.
+`application.properties` sets the application name to `spring-boot-container`
+and the server port to `9090`. There are currently no application controllers
+or HTTP endpoints in the source tree.
+
+### What the application does
+
+1. `SpringApplication.run(SpringBootContainerApplication.class, args)` starts
+   the application and returns its context. The MVC dependency enables servlet
+   web application startup under the current configuration.
+2. Component scanning discovers `EmployeeService` in the application's package.
+   `@Service` gives it the default bean name `employeeService` and singleton scope.
+3. Spring injects that service into the application bean's sole constructor.
+   No explicit `@Autowired` is needed. The field stores this dependency, but
+   the current demonstration does not read the field.
+4. After startup returns, `main` prints `getBeanDefinitionCount()` and every
+   name returned by `getBeanDefinitionNames()`. These describe registered
+   definitions, not a count of instantiated objects. The list includes framework
+   infrastructure and varies with dependencies and configuration.
+5. `getBean("employeeService", EmployeeService.class)` retrieves the service
+   using its name and required type. The local variable in `main` is separate
+   from the injected field; both resolve the same singleton in this context.
+6. `containsBean("employeeService")` reports availability, and
+   `isSingleton("employeeService")` checks singleton scope. Availability alone
+   does not prove that a bean has already been instantiated.
+7. `getEnvironment().getProperty("server.port")` reads the configured port.
+   With the checked-in properties it returns `9090`; command-line arguments
+   or other property sources can override it. It does not report the actual
+   bound port when a random port is requested with `server.port=0`.
+8. `display()` prints `EmployeeService -> display()`. The web application
+   remains running until stopped.
+
+### Bean lookup alternatives
+
+The commented examples in `main` show two alternatives to the active lookup:
+
+| Expression | Meaning |
+|---|---|
+| `getBean(EmployeeService.class)` | Resolve by type |
+| `(EmployeeService) getBean("employeeService")` | Resolve by name, then cast the result |
+| `getBean("employeeService", EmployeeService.class)` | Resolve by name and require a compatible type |
+
+Constructor injection is the normal way to supply service dependencies to
+application components. Explicit lookups here illustrate the container API.
+
+### Run and inspect
+
+From the project directory in PowerShell, run:
+
+```powershell
+.\mvnw.cmd spring-boot:run
+```
+
+After the Spring Boot startup logs and bean-name listing, the current code prints
+these diagnostic lines (the spelling matches the source):
+
+```text
+Bean is avialable :true
+Server Port :9090
+is this singleton class :true
+EmployeeService -> display()
+```
+
+The bean count is deliberately omitted here because it depends on configuration.
+Stop the application with `Ctrl+C`.
+
+The existing `SpringBootContainerApplicationTests.contextLoads()` test checks
+that the Spring test context can start. It does not explicitly invoke `main`
+or assert the diagnostic output. Run it with `.\mvnw.cmd test`.
+Generate source API documentation with `.\mvnw.cmd javadoc:javadoc`;
+the Maven output reports the generated documentation location under `target`.
+
+The remaining sections explain the broader container concepts illustrated by
+this demonstration; their sample classes are not additional project components.
+
 ## 1. Core concepts
 
 ### Inversion of Control (IoC)
@@ -396,7 +474,7 @@ flowchart TD
 
 A typical Boot servlet application has one main context containing both application and MVC beans. `DispatcherServlet` can use that existing context; two separate contexts are not mandatory.
 
-This project's `pom.xml` declares `spring-boot-starter-webmvc`, so the servlet MVC architecture is the relevant model. The diagrams describe standard behavior, not an inspection of every application class in this repository.
+This project's `pom.xml` declares `spring-boot-starter-webmvc`, so the servlet MVC architecture is the relevant model. The diagram illustrates a typical application; this repository currently has an `EmployeeService` but no application controllers or repositories.
 
 ## 7. Functional flow: application startup
 
